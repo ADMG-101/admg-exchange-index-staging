@@ -1,0 +1,106 @@
+# Finds Exchange App installations (made from the launcher's Creator Hub or directly on GitHub; they are the same
+# installation records), proposes registrations as pull requests, and starts a scan for each new release candidate.
+# A GitHub outage stops the run before anything is written: no registration is ever removed or rewritten here.
+name: discover
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: discover
+  cancel-in-progress: false
+
+env:
+  TOOLS_URL: https://github.com/ADMG-101/admg-exchange-index-staging/releases/download/tools-v0.4.0/admg-exchange-tools-0.4.0.zip
+  TOOLS_SHA256: bddc9552fbc62ec1bcc7e8ff3ec56ea86a2881b6bf41991dd1ec6272217a655b
+
+jobs:
+  discover:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: discovery
+    permissions:
+      contents: write        # registration branches and the state branch only (main is protected)
+      pull-requests: write   # registration pull requests
+      actions: write         # start scan.yml and validate.yml
+    steps:
+      - name: Check out main
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: index
+          fetch-depth: 0
+
+      - name: Install the .NET runtime
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Fetch Exchange.Tools (digest-pinned)
+        run: |
+          curl -fsSL "$TOOLS_URL" -o tools.zip
+          echo "$TOOLS_SHA256  tools.zip" | sha256sum -c -
+          unzip -q tools.zip && mv admg-exchange-tools tools
+
+      - name: Load discovery state
+        working-directory: index
+        run: |
+          mkdir -p ../state
+          if git fetch --quiet origin state; then git show origin/state:known.json > ../state/known.json; fi
+
+      - name: Discover (aborts without writing on any GitHub failure)
+        env:
+          APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+          APP_ID: ${{ vars.APP_ID }}
+        run: |
+          dotnet tools/admg-exchange.dll discover --app-id "$APP_ID" --app-key-env APP_PRIVATE_KEY \
+            --registrations index/registrations --known state/known.json --out out
+
+      - name: Propose new registrations (one pull request per project)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        working-directory: index
+        run: |
+          git config user.name "admg-exchange-discovery[bot]"
+          git config user.email "admg-exchange-discovery@users.noreply.github.com"
+          for file in ../out/registrations/*.json; do
+            [ -e "$file" ] || continue
+            id=$(basename "$file" .json); branch="registration/$id"
+            if git ls-remote --exit-code --heads origin "$branch" >/dev/null; then echo "already proposed: $id"; continue; fi
+            git checkout -q -B "$branch" origin/main
+            cp "$file" "registrations/$id.json"
+            git add "registrations/$id.json"
+            git commit -q -m "Register $id"
+            git push -q origin "$branch"
+            gh pr create --base main --head "$branch" --title "Register $id" \
+              --body "Discovered through the ADMG Exchange App installation. Repository identity: $(jq -r '.repoNodeId + " (" + .owner + "/" + .repo + ")"' "$file")."
+            gh workflow run validate.yml --ref "$branch"
+          done
+
+      - name: Start a scan for each new candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+        working-directory: index
+        run: |
+          for file in ../out/candidates/*.json; do
+            [ -e "$file" ] || continue
+            gh workflow run scan.yml --ref main -f candidate="$(jq -c . "$file")"
+          done
+
+      - name: Save state and the public onboarding status
+        working-directory: index
+        run: |
+          if git rev-parse --verify --quiet origin/state >/dev/null; then
+            git checkout -q -B state origin/state
+          else
+            git checkout -q --orphan state
+            git rm -rq --cached . && find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          fi
+          cp ../out/known.json known.json
+          cp ../out/status.json status.json
+          git add known.json status.json
+          git diff --cached --quiet || git commit -q -m "Discovery state"
+          git push -q origin state
