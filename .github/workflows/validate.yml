@@ -1,0 +1,77 @@
+# Validates registrations with the Exchange contracts and checks their GitHub identity. Registrations are created only
+# by discovery (from an App installation); a registration from anywhere else is refused.
+name: validate
+
+on:
+  pull_request:
+    paths: ["registrations/**", "config/**"]
+  push:
+    branches: [main]
+    paths: ["registrations/**", "config/**"]
+  workflow_dispatch:
+
+permissions: {}
+
+env:
+  TOOLS_URL: https://github.com/ADMG-101/admg-exchange-index-staging/releases/download/tools-v0.4.0/admg-exchange-tools-0.4.0.zip
+  TOOLS_SHA256: bddc9552fbc62ec1bcc7e8ff3ec56ea86a2881b6bf41991dd1ec6272217a655b
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Only discovery proposes registrations
+        if: github.event_name == 'pull_request'
+        env:
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+        run: |
+          changed=$(git diff --name-only "origin/${GITHUB_BASE_REF}...HEAD" -- registrations)
+          [ -z "$changed" ] && exit 0
+          if [ "$AUTHOR" != "github-actions[bot]" ] || [ "$HEAD_REPO" != "$GITHUB_REPOSITORY" ] || [[ "$HEAD_REF" != registration/* ]]; then
+            echo "::error::Registrations are created by discovery from an Exchange App installation, not by hand."; exit 1
+          fi
+          if git diff --diff-filter=DMR --name-only "origin/${GITHUB_BASE_REF}...HEAD" -- registrations | grep -q .; then
+            echo "::error::Registrations are never changed or removed by a pull request; identity is stable."; exit 1
+          fi
+
+      - name: Install the .NET runtime
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Fetch Exchange.Tools (digest-pinned)
+        run: |
+          curl -fsSL "$TOOLS_URL" -o tools.zip
+          echo "$TOOLS_SHA256  tools.zip" | sha256sum -c -
+          unzip -q tools.zip && mv admg-exchange-tools tools
+
+      - name: Validate registrations and configuration
+        run: |
+          shopt -s nullglob
+          for f in registrations/*.json; do dotnet tools/admg-exchange.dll validate --kind registration "$f"; done
+          dotnet tools/admg-exchange.dll registrations verify --dir registrations
+          dotnet tools/admg-exchange.dll validate --kind root config/root/root.json
+          dotnet tools/admg-exchange.dll validate --kind signature config/root/root.json.sig
+
+      - name: Check each registration's repository identity on GitHub
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          shopt -s nullglob
+          for f in registrations/*.json; do
+            node=$(jq -r .repoNodeId "$f"); want=$(jq -r '.owner + "/" + .repo' "$f")
+            got=$(gh api graphql -f query='query($id:ID!){node(id:$id){... on Repository{nameWithOwner isPrivate}}}' -f id="$node" --jq '.data.node | "\(.nameWithOwner) \(.isPrivate)"')
+            if [ "$got" != "$want false" ]; then
+              echo "::warning::$f: repository $node is now '$got' (registered as $want, public). A moderator must review a transfer, rename or visibility change."
+            fi
+          done

@@ -1,0 +1,83 @@
+# Re-downloads every offered artifact and compares it with the signed index. Mutations and disappearances are reported
+# for moderators (who quarantine or revoke through the ledger); confirmed disappearances mark a project unavailable on
+# the next publish. When too many checks are inconclusive the run is treated as an outage: nothing is marked gone.
+name: health
+
+on:
+  schedule:
+    - cron: "23 5 * * 1" # weekly
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: health
+  cancel-in-progress: false
+
+env:
+  TOOLS_URL: https://github.com/ADMG-101/admg-exchange-index-staging/releases/download/tools-v0.4.0/admg-exchange-tools-0.4.0.zip
+  TOOLS_SHA256: bddc9552fbc62ec1bcc7e8ff3ec56ea86a2881b6bf41991dd1ec6272217a655b
+
+jobs:
+  health:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: write # the state branch only
+      issues: write   # report mutations, disappearances and skipped runs
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: index
+          fetch-depth: 0
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: gh-pages
+          path: site
+          persist-credentials: false
+
+      - name: Install the .NET runtime
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Fetch Exchange.Tools (digest-pinned)
+        run: |
+          curl -fsSL "$TOOLS_URL" -o tools.zip
+          echo "$TOOLS_SHA256  tools.zip" | sha256sum -c -
+          unzip -q tools.zip && mv admg-exchange-tools tools
+
+      - name: Check every offered artifact
+        id: check
+        run: |
+          set +e
+          dotnet tools/admg-exchange.dll health --dir site/index/v1 --root-public index/config/root.pub --out out
+          echo "status=$?" >> "$GITHUB_OUTPUT"
+
+      - name: Report problems
+        if: steps.check.outputs.status != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          STATUS: ${{ steps.check.outputs.status }}
+        working-directory: index
+        run: |
+          if [ "$STATUS" = "3" ]; then title="Exchange health skipped: possible outage"; label="health-skipped";
+          elif [ "$STATUS" = "1" ]; then title="Exchange health: mutated or missing artifacts"; label="quarantine-pending";
+          else echo "health failed unexpectedly"; exit 1; fi
+          gh label create "$label" --force --color B60205 >/dev/null
+          body=$(jq -r '"Run: '"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"'\n\n" + (.skipReason // "") + "\n\n" + ([.checks[] | select(.outcome != "ok") | "- \(.project) \(.asset): \(.outcome) \(.detail // "")"] | join("\n"))' ../out/health.json)
+          gh issue create --title "$title" --label "$label" --body "$body"
+
+      - name: Save extras for the next publish
+        if: steps.check.outputs.status == '0' || steps.check.outputs.status == '1'
+        working-directory: index
+        run: |
+          git config user.name "admg-exchange-health[bot]"
+          git config user.email "admg-exchange-health@users.noreply.github.com"
+          if git fetch --quiet origin state; then git checkout -q -B state origin/state; else git checkout -q --orphan state && git rm -rq --cached . && find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +; fi
+          cp ../out/health.json health.json
+          [ -f ../out/extras.json ] && cp ../out/extras.json extras.json
+          git add -A health.json extras.json 2>/dev/null || git add health.json
+          git diff --cached --quiet || git commit -q -m "Health check"
+          git push -q origin state

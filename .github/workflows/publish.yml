@@ -1,0 +1,105 @@
+# Builds the signed staging index from the signed moderation ledger and publishes it to the gh-pages branch, which
+# GitHub Pages serves and raw.githubusercontent.com mirrors. Only approved artifacts can appear (the builder reads the
+# ledger alone). A failed build or verification pushes nothing: the previous index stays live.
+name: publish
+
+on:
+  schedule:
+    - cron: "17 4 * * *" # daily, so the 14-day expiry never lapses
+  workflow_dispatch:
+    inputs:
+      first_build:
+        description: Deliberate first publication (no previous index exists)
+        type: boolean
+        default: false
+
+permissions: {}
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+env:
+  TOOLS_URL: https://github.com/ADMG-101/admg-exchange-index-staging/releases/download/tools-v0.4.0/admg-exchange-tools-0.4.0.zip
+  TOOLS_SHA256: bddc9552fbc62ec1bcc7e8ff3ec56ea86a2881b6bf41991dd1ec6272217a655b
+  LEDGER_REPOSITORY: ADMG-101/admg-exchange-ledger-staging
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: index-signing
+    permissions:
+      contents: write # gh-pages only (main is protected)
+    steps:
+      - name: Check out main (registrations, trust configuration)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: index
+          persist-credentials: false
+
+      - name: Check out the moderation ledger (read-only deploy key)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ env.LEDGER_REPOSITORY }}
+          ssh-key: ${{ secrets.LEDGER_DEPLOY_KEY }}
+          path: ledger
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check out the published site (gh-pages)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        continue-on-error: ${{ inputs.first_build == true }}
+        with:
+          ref: gh-pages
+          path: site
+
+      - name: Install the .NET runtime
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Fetch Exchange.Tools (digest-pinned)
+        run: |
+          curl -fsSL "$TOOLS_URL" -o tools.zip
+          echo "$TOOLS_SHA256  tools.zip" | sha256sum -c -
+          unzip -q tools.zip && mv admg-exchange-tools tools
+
+      - name: Load health extras (optional; carried forward when absent)
+        working-directory: index
+        run: |
+          if git fetch --quiet https://github.com/${{ github.repository }} state 2>/dev/null && git show FETCH_HEAD:extras.json > ../extras.json 2>/dev/null; then
+            echo "EXTRAS=--extras extras.json" >> "$GITHUB_ENV"
+          fi
+
+      - name: Build, verify and stage the index (atomic; nothing changes on failure)
+        env:
+          INDEX_SIGNING_KEY: ${{ secrets.INDEX_SIGNING_KEY }}
+          FIRST: ${{ inputs.first_build == true }}
+        run: |
+          umask 077
+          key="$RUNNER_TEMP/index.pem"; printf '%s\n' "$INDEX_SIGNING_KEY" > "$key"
+          mkdir -p site
+          if [ "$FIRST" = "true" ] && [ ! -f site/index/v1/index.json ]; then previous=(--first-build); else previous=(--previous site/index/v1); fi
+          set +e
+          dotnet tools/admg-exchange.dll build-index --ledger ledger --bootstrap index/config/ledger-bootstrap.signers \
+            --registrations index/registrations --root index/config/root --root-public index/config/root.pub \
+            --index-key "$key" --now "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "${previous[@]}" $EXTRAS --out site/index/v1
+          status=$?
+          rm -f "$key"
+          exit $status
+
+      - name: Verify the result as the launcher will
+        run: dotnet tools/admg-exchange.dll verify-index --dir site/index/v1 --root-public index/config/root.pub
+
+      - name: Publish to gh-pages
+        working-directory: site
+        run: |
+          touch .nojekyll
+          git config user.name "admg-exchange-publish[bot]"
+          git config user.email "admg-exchange-publish@users.noreply.github.com"
+          if [ ! -d .git ]; then git init -q -b gh-pages && git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"; fi
+          git add -A
+          if git diff --cached --quiet; then echo "Index unchanged."; exit 0; fi
+          git commit -q -m "Publish index serial $(jq -r .serial index/v1/index.json)"
+          git push -q origin HEAD:gh-pages

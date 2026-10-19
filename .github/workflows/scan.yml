@@ -1,0 +1,145 @@
+# Inspects one release candidate and attests the evidence. Started only by discover.yml (workflow_dispatch), never by
+# pull requests. The inspection itself runs in a container with no network and no credentials; the private reference
+# set is decrypted by a trusted step and mounted read-only; nothing secret is uploaded.
+name: scan
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate:
+        description: Release candidate JSON written by discover.yml
+        required: true
+        type: string
+
+permissions: {}
+
+env:
+  TOOLS_URL: https://github.com/ADMG-101/admg-exchange-index-staging/releases/download/tools-v0.4.0/admg-exchange-tools-0.4.0.zip
+  TOOLS_SHA256: bddc9552fbc62ec1bcc7e8ff3ec56ea86a2881b6bf41991dd1ec6272217a655b
+  DOTNET_IMAGE: mcr.microsoft.com/dotnet/runtime@sha256:939555726cae4c916d212323ac3c0792996dcac2614f00e82cc40fcf059e1af3
+
+jobs:
+  inspect:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: scan-references
+    permissions:
+      contents: read
+    steps:
+      - name: Check out the index repository (references ciphertext)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: index
+          persist-credentials: false
+
+      - name: Install the .NET runtime
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Fetch Exchange.Tools (digest-pinned)
+        run: |
+          curl -fsSL "$TOOLS_URL" -o tools.zip
+          echo "$TOOLS_SHA256  tools.zip" | sha256sum -c -
+          unzip -q tools.zip && mv admg-exchange-tools tools
+
+      - name: Validate the candidate
+        env:
+          CANDIDATE: ${{ inputs.candidate }}
+        run: |
+          printf '%s' "$CANDIDATE" > candidate.json
+          dotnet tools/admg-exchange.dll validate --kind candidate candidate.json
+          jq -r '"\(.owner)/\(.repo)"' candidate.json > repository.txt
+          jq -r '.release.sourceCommit' candidate.json > commit.txt
+          grep -Eq '^[A-Za-z0-9-]+/[A-Za-z0-9._-]+$' repository.txt
+          grep -Eq '^[0-9a-f]{40}$' commit.txt
+          echo "REPOSITORY=$(cat repository.txt)" >> "$GITHUB_ENV"
+          echo "COMMIT=$(cat commit.txt)" >> "$GITHUB_ENV"
+
+      - name: Check out the publisher's source at the release commit (read-only, public)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: ${{ env.REPOSITORY }}
+          ref: ${{ env.COMMIT }}
+          path: source
+          persist-credentials: false
+
+      - name: Download each artifact (digest-checked) and verify its build attestation
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p work attest out
+          jq -c '.artifacts[]' candidate.json | while read -r artifact; do
+            sha=$(jq -r .sha256 <<<"$artifact"); url=$(jq -r .url <<<"$artifact")
+            dotnet tools/admg-exchange.dll fetch --url "$url" --sha256 "$sha" --out "work/$sha"
+            if gh attestation verify "work/$sha" --repo "$REPOSITORY" --format json > "attest/$sha.json" 2> "attest/$sha.err"; then
+              echo "attestation verified for $sha"
+            else
+              rm -f "attest/$sha.json"; echo "no verified attestation for $sha"
+            fi
+          done
+
+      - name: Decrypt the reference set (trusted step; key never leaves this step)
+        env:
+          REFERENCES_KEY: ${{ secrets.REFERENCES_KEY }}
+        run: |
+          mkdir -p refs && chmod 700 refs
+          dotnet tools/admg-exchange.dll references decrypt --in index/config/references.json.enc --key-env REFERENCES_KEY --out refs/references.json
+          chmod 444 refs/references.json
+
+      - name: Inspect in an isolated container (no network, no credentials, read-only inputs)
+        run: |
+          jq -c '.artifacts[]' candidate.json | while read -r artifact; do
+            sha=$(jq -r .sha256 <<<"$artifact")
+            attestation=(--attestation-missing)
+            [ -f "attest/$sha.json" ] && attestation=(--attestation "/attest/$sha.json")
+            docker run --rm --network none --read-only --cap-drop ALL --security-opt no-new-privileges --user "$(id -u):$(id -g)" \
+              --pids-limit 256 --memory 3g --tmpfs /tmp:rw,size=64m \
+              -e DOTNET_CLI_TELEMETRY_OPTOUT=1 -e HOME=/tmp \
+              -v "$PWD/tools:/tools:ro" -v "$PWD/work:/work:ro" -v "$PWD/source:/source:ro" \
+              -v "$PWD/refs:/refs:ro" -v "$PWD/attest:/attest:ro" -v "$PWD/out:/out" \
+              "$DOTNET_IMAGE" dotnet /tools/admg-exchange.dll inspect \
+                --artifact "/work/$sha" --asset "$(jq -r .asset <<<"$artifact")" --kind "$(jq -r .kind <<<"$artifact")" \
+                --expected-sha256 "$sha" --descriptor /source/.admg/exchange.json \
+                --version "$(jq -r .release.version candidate.json)" --source-commit "$COMMIT" --repository "$REPOSITORY" \
+                --references /refs/references.json --source-tree /source "${attestation[@]}" \
+                --out "/out/$sha.evidence.json"
+          done
+
+      - name: Remove the decrypted references
+        if: always()
+        run: rm -rf refs
+
+      - name: Validate the evidence
+        run: for f in out/*.evidence.json; do dotnet tools/admg-exchange.dll validate --kind evidence "$f"; done
+
+      - name: Upload evidence (no references, no secrets)
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: evidence
+          path: |
+            out/*.evidence.json
+            candidate.json
+            attest/*.json
+          retention-days: 30
+          if-no-files-found: error
+
+  attest:
+    needs: inspect
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - name: Download evidence
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: evidence
+          path: evidence
+
+      - name: Attest the evidence (binds each evidence digest to this workflow)
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: evidence/out/*.evidence.json
