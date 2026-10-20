@@ -69,12 +69,15 @@ jobs:
           for file in ../out/registrations/*.json; do
             [ -e "$file" ] || continue
             id=$(basename "$file" .json); branch="registration/$id"
-            if git ls-remote --exit-code --heads origin "$branch" >/dev/null; then echo "already proposed: $id"; continue; fi
-            git checkout -q -B "$branch" origin/main
-            cp "$file" "registrations/$id.json"
-            git add "registrations/$id.json"
-            git commit -q -m "Register $id"
-            git push -q origin "$branch"
+            # A proposal is complete only when its pull request exists; a branch left by an interrupted run is reused.
+            if [ -n "$(gh pr list --head "$branch" --state all --json number --jq '.[0].number')" ]; then echo "already proposed: $id"; continue; fi
+            if ! git ls-remote --exit-code --heads origin "$branch" >/dev/null; then
+              git checkout -q -B "$branch" origin/main
+              cp "$file" "registrations/$id.json"
+              git add "registrations/$id.json"
+              git commit -q -m "Register $id"
+              git push -q origin "$branch"
+            fi
             gh pr create --base main --head "$branch" --title "Register $id" \
               --body "Discovered through the ADMG Exchange App installation. Repository identity: $(jq -r '.repoNodeId + " (" + .owner + "/" + .repo + ")"' "$file")."
             gh workflow run validate.yml --ref "$branch"
