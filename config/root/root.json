@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "version": 1,
+  "issuedAt": "2026-10-20T00:09:50Z",
+  "expiresAt": "2027-10-20T00:09:50Z",
+  "indexKeys": [
+    {
+      "keyId": "97ed255f25d700c7",
+      "algorithm": "ES256",
+      "publicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE14/avW0PhZ3Fsna//eAVB10RiWWr6HRutqQ8nRkXhPV7Z0PIP+0smZnzKgGiv5xdBaKYdKIusI4nKN+rOS70sw==",
+      "notBefore": "2026-10-20T00:09:50Z",
+      "notAfter": "2027-10-19T00:09:50Z"
+    }
+  ]
+}
