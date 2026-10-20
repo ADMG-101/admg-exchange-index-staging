@@ -1,9 +1,9 @@
 {
   "schema": 1,
-  "serial": 5,
-  "generatedAt": "2026-10-20T13:44:12Z",
-  "expiresAt": "2026-11-03T13:44:12Z",
-  "ledgerHead": "c666a51903ec0bcfdc38ea15d827a3c6e7064a93",
+  "serial": 6,
+  "generatedAt": "2026-10-20T23:03:49Z",
+  "expiresAt": "2026-11-03T23:03:49Z",
+  "ledgerHead": "93ebca2ba6cbb646d52c2040d8af10e28e19d8a2",
   "policy": "policy-1",
   "featured": [],
   "projects": [
@@ -82,5 +82,17 @@
       "detail": "projects/admg-101.exchange-test-mod.json"
     }
   ],
-  "revocations": []
+  "revocations": [
+    {
+      "sha256": "623c25f913434c78ff03ba7cbb97f2b773e61c48962e2257700659568359ef4c",
+      "project": "admg-101.exchange-test-mod",
+      "severity": "block",
+      "publicReason": "Test revocation on staging.",
+      "at": "2026-10-20T22:59:08Z",
+      "record": "01M5DRMEY24EMPDSZC8F7QEDJZ",
+      "installedSha256": [
+        "03ad95495040ba0eaa211bd29a2690cb3590e2196acc4c90b39180efcbbe0b97"
+      ]
+    }
+  ]
 }
