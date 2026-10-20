@@ -1,8 +1,8 @@
 {
   "schema": 1,
-  "serial": 3,
-  "generatedAt": "2026-10-20T01:28:39Z",
-  "expiresAt": "2026-11-03T01:28:39Z",
+  "serial": 4,
+  "generatedAt": "2026-10-20T06:51:35Z",
+  "expiresAt": "2026-11-03T06:51:35Z",
   "ledgerHead": "80b4736194fcfd697fa2b6333cdabdbfdd05a866",
   "policy": "policy-1",
   "featured": [],
@@ -43,7 +43,14 @@
             "contains": [
               "data"
             ],
-            "disclosures": []
+            "disclosures": [],
+            "installed": {
+              "layout": "root-zip",
+              "hostSha256": "623c25f913434c78ff03ba7cbb97f2b773e61c48962e2257700659568359ef4c",
+              "unpackedSha256": [
+                "03ad95495040ba0eaa211bd29a2690cb3590e2196acc4c90b39180efcbbe0b97"
+              ]
+            }
           }
         ],
         "checks": {

@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "project": "admg-101.exchange-test-mod",
-  "serial": 3,
+  "serial": 4,
   "readme": "# Exchange Test Mod\n\nA small, data-only test package for the ADMG Exchange staging pipeline. It contains no game data and no code.\n\n- `mod/` is packaged as `exchange-test-mod-<version>.zip` by `.github/workflows/release.yml` for every `v*` tag.\n- `.admg/exchange.json` describes the project to ADMG Exchange.\n",
   "releases": [
     {
@@ -25,7 +25,14 @@
             "contains": [
               "data"
             ],
-            "disclosures": []
+            "disclosures": [],
+            "installed": {
+              "layout": "root-zip",
+              "hostSha256": "623c25f913434c78ff03ba7cbb97f2b773e61c48962e2257700659568359ef4c",
+              "unpackedSha256": [
+                "03ad95495040ba0eaa211bd29a2690cb3590e2196acc4c90b39180efcbbe0b97"
+              ]
+            }
           }
         ],
         "checks": {
