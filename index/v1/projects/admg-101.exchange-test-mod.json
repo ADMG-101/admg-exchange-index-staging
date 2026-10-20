@@ -1,0 +1,59 @@
+{
+  "schema": 1,
+  "project": "admg-101.exchange-test-mod",
+  "serial": 1,
+  "readme": "# Exchange Test Mod\n\nA small, data-only test package for the ADMG Exchange staging pipeline. It contains no game data and no code.\n\n- `mod/` is packaged as `exchange-test-mod-<version>.zip` by `.github/workflows/release.yml` for every `v*` tag.\n- `.admg/exchange.json` describes the project to ADMG Exchange.\n",
+  "releases": [
+    {
+      "status": "current",
+      "notes": "Staging test release.\n",
+      "release": {
+        "release": "admg-101.exchange-test-mod@1.0.0",
+        "version": "1.0.0",
+        "tag": "v1.0.0",
+        "sourceCommit": "7a57b16f3615e802cadf47117b06c90a697f8358",
+        "approvedAt": "2026-10-20T01:05:57Z",
+        "approval": "01M5BDFYQD1RE225HK6WKFAMFC",
+        "artifacts": [
+          {
+            "asset": "exchange-test-mod-1.0.0.zip",
+            "kind": "mod-package",
+            "githubAssetId": 657733039,
+            "url": "https://github.com/ADMG-101/exchange-test-mod/releases/download/v1.0.0/exchange-test-mod-1.0.0.zip",
+            "size": 539,
+            "sha256": "623c25f913434c78ff03ba7cbb97f2b773e61c48962e2257700659568359ef4c",
+            "contains": [
+              "data"
+            ],
+            "disclosures": []
+          }
+        ],
+        "checks": {
+          "provenance": "pass",
+          "content": "pass",
+          "integrity": "pass",
+          "executable": "pass"
+        },
+        "verification": {
+          "sourcePublic": true,
+          "buildProvenance": "not-applicable",
+          "reproduced": "not-attempted"
+        },
+        "mod": {
+          "packages": [
+            {
+              "asset": "exchange-test-mod-1.0.0.zip",
+              "modId": "exchange-test-mod",
+              "gameId": "emerald-expansion",
+              "minimumRecompVersion": "0.1.0",
+              "dependencies": [],
+              "optionalDependencies": [],
+              "conflicts": [],
+              "requiresCapabilities": []
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
