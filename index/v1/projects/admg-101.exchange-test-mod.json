@@ -1,11 +1,69 @@
 {
   "schema": 1,
   "project": "admg-101.exchange-test-mod",
-  "serial": 4,
+  "serial": 5,
   "readme": "# Exchange Test Mod\n\nA small, data-only test package for the ADMG Exchange staging pipeline. It contains no game data and no code.\n\n- `mod/` is packaged as `exchange-test-mod-<version>.zip` by `.github/workflows/release.yml` for every `v*` tag.\n- `.admg/exchange.json` describes the project to ADMG Exchange.\n",
   "releases": [
     {
       "status": "current",
+      "notes": "Staging test release.\n",
+      "release": {
+        "release": "admg-101.exchange-test-mod@1.2.0",
+        "version": "1.2.0",
+        "tag": "v1.2.0",
+        "sourceCommit": "0e83556e3af200b597e1619ae3908d2efba338b7",
+        "approvedAt": "2026-10-20T13:36:43Z",
+        "approval": "01M5CREMYSX31DKGH1HZJVC51C",
+        "artifacts": [
+          {
+            "asset": "exchange-test-mod-1.2.0.zip",
+            "kind": "mod-package",
+            "githubAssetId": 658439616,
+            "url": "https://github.com/ADMG-101/exchange-test-mod/releases/download/v1.2.0/exchange-test-mod-1.2.0.zip",
+            "size": 540,
+            "sha256": "b2fffa341639d6f9d77e3e3360515ccf2e26e6d2a92758e33653c9afdad97fe4",
+            "contains": [
+              "data"
+            ],
+            "disclosures": [],
+            "installed": {
+              "layout": "root-zip",
+              "hostSha256": "b2fffa341639d6f9d77e3e3360515ccf2e26e6d2a92758e33653c9afdad97fe4",
+              "unpackedSha256": [
+                "aa2d45573c6f42cdc7a376af5ce8790986fd16d865e6421b6a586d1e612c6f5e"
+              ]
+            }
+          }
+        ],
+        "checks": {
+          "provenance": "pass",
+          "content": "pass",
+          "integrity": "pass",
+          "executable": "pass"
+        },
+        "verification": {
+          "sourcePublic": true,
+          "buildProvenance": "not-applicable",
+          "reproduced": "not-attempted"
+        },
+        "mod": {
+          "packages": [
+            {
+              "asset": "exchange-test-mod-1.2.0.zip",
+              "modId": "exchange-test-mod",
+              "gameId": "emerald-expansion",
+              "minimumRecompVersion": "0.1.0",
+              "dependencies": [],
+              "optionalDependencies": [],
+              "conflicts": [],
+              "requiresCapabilities": []
+            }
+          ]
+        }
+      }
+    },
+    {
+      "status": "superseded",
       "notes": "Staging test release.\n",
       "release": {
         "release": "admg-101.exchange-test-mod@1.0.0",
