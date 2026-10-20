@@ -1,0 +1,15 @@
+{
+  "schema": 1,
+  "checkedAt": "2026-10-20T00:28:18Z",
+  "repositories": [
+    {
+      "repoNodeId": "R_kgDOVQN3aA",
+      "repository": "ADMG-101/exchange-test-mod",
+      "installationId": 173209616,
+      "state": "pending-registration",
+      "projectId": "admg-101.exchange-test-mod",
+      "reasons": []
+    }
+  ],
+  "releases": []
+}
