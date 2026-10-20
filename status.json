@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "checkedAt": "2026-10-20T01:15:37Z",
+  "checkedAt": "2026-10-20T01:22:36Z",
   "repositories": [
     {
       "repoNodeId": "R_kgDOVQN3aA",
@@ -14,7 +14,7 @@
   "releases": [
     {
       "projectId": "admg-101.exchange-test-mod",
-      "tag": "v1.1.0",
+      "tag": "v1.0.0",
       "state": "candidate",
       "reasons": [
         "Ready for inspection."
