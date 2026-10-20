@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "indexSerial": 2,
+  "checkedAt": "2026-10-20T01:19:37Z",
+  "skipped": false,
+  "checks": [
+    {
+      "project": "admg-101.exchange-test-mod",
+      "asset": "exchange-test-mod-1.0.0.zip",
+      "sha256": "623c25f913434c78ff03ba7cbb97f2b773e61c48962e2257700659568359ef4c",
+      "outcome": "ok"
+    }
+  ]
+}
