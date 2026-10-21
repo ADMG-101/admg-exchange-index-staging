@@ -10,8 +10,11 @@ You never upload files to Exchange and you never need a token.
   Exchange categories.
 - From a **public GitHub repository**, with publicly inspectable source.
 - **Licensing is your choice.** Exchange requires no licence. If you declare one in `project.license`, players see it.
-- Released by **your repository's own workflow** from the tagged commit, with GitHub build provenance. Packages with
-  code must carry a build-provenance attestation from that workflow.
+- Released as a **GitHub release** of a tagged commit:
+  - **Data mods and modpacks** (JSON, images, text): build and upload the zip however you like. Every file in it must
+    match your repository at the tag.
+  - **Mods with code (DLLs)**: build with the template's release workflow, so GitHub records that the DLL was built
+    from your tagged source (a build-provenance attestation). A DLL built on your own machine can't be accepted.
 - **Your own work**: no game ROMs, ROM patches, or extracted game graphics, music or text.
 - Every release is reviewed and **approved by a moderator** before it is published.
 
