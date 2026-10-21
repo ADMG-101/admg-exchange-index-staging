@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "ledgerHead": "829dbd2f42e0885e3aa464ca0f4939e24b6a2030",
+  "decisions": [
+    {
+      "project": "admg-101.exchange-test-mod",
+      "release": "admg-101.exchange-test-mod@1.3.3",
+      "tag": "v1.3.3",
+      "sha256": [
+        "52b0c2429b53bb345ef0bcf0c4a2eef88bfebc530cacd15275919c2c2f3ce96f"
+      ],
+      "action": "reject",
+      "publicReason": "The release contains code without a GitHub build-provenance attestation. Release it with the template\u0027s release workflow.",
+      "at": "2026-10-21T14:52:47Z",
+      "record": "01M5FF6N0F7ZAJB2ZRJCY3SD37"
+    }
+  ]
+}
