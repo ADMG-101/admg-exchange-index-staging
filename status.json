@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "checkedAt": "2026-10-21T12:14:10Z",
+  "checkedAt": "2026-10-21T14:05:06Z",
   "repositories": [
     {
       "repoNodeId": "R_kgDOVQN3aA",
@@ -11,5 +11,38 @@
       "reasons": []
     }
   ],
-  "releases": []
+  "releases": [
+    {
+      "projectId": "admg-101.exchange-test-mod",
+      "tag": "v1.0.0",
+      "state": "skipped",
+      "reasons": [
+        ".admg/exchange.json is invalid: EX205 /project/license: Declare an open-source licence: set project.license.name to its SPDX identifier (for example \"MIT\") and keep the licence text in the repository's LICENSE file."
+      ]
+    },
+    {
+      "projectId": "admg-101.exchange-test-mod",
+      "tag": "v1.1.0",
+      "state": "skipped",
+      "reasons": [
+        ".admg/exchange.json is invalid: EX205 /project/license: Declare an open-source licence: set project.license.name to its SPDX identifier (for example \"MIT\") and keep the licence text in the repository's LICENSE file."
+      ]
+    },
+    {
+      "projectId": "admg-101.exchange-test-mod",
+      "tag": "v1.2.0",
+      "state": "skipped",
+      "reasons": [
+        ".admg/exchange.json is invalid: EX205 /project/license: Declare an open-source licence: set project.license.name to its SPDX identifier (for example \"MIT\") and keep the licence text in the repository's LICENSE file."
+      ]
+    },
+    {
+      "projectId": "admg-101.exchange-test-mod",
+      "tag": "v1.3.0",
+      "state": "candidate",
+      "reasons": [
+        "Ready for inspection."
+      ]
+    }
+  ]
 }
