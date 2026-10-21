@@ -5,11 +5,6 @@ repository's `state` branch. Common reasons:
 
 | Message | What to do |
 |---|---|
-| `.admg/exchange.json is invalid: EX205 ...` | Declare your licence, for example `"license": { "name": "MIT", "file": "LICENSE" }` (any accepted SPDX id). |
-| `... EX206 '...' is not an accepted open-source licence` | Use an open-source licence's SPDX identifier, for example `MIT`, `Apache-2.0`, `GPL-3.0-or-later`, `MPL-2.0` or `CC-BY-4.0`. |
-| `No licence file at v1.2.3` | Add the licence's unmodified text as `LICENSE` at the repository root, commit, and tag a new version. |
-| `GitHub cannot identify the licence file ...` | Replace `LICENSE` with the unmodified licence text (no added terms), then tag a new version. |
-| `The licence file at ... is X, but .admg/exchange.json declares Y` | Make the declared licence and `LICENSE` agree. |
 | `The project id must start with '<owner>.'` | The first part of `project.id` is your GitHub account or organisation name, in lowercase. |
 | `'<id>' is already registered to another repository` | Project ids are unique; choose another name. |
 | `Exchange lists only public repositories` or `The repository is archived` | Make the repository public, or unarchive it. |
