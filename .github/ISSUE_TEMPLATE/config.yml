@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Publisher guide
+    url: https://github.com/ADMG-101/admg-exchange-index-staging/blob/main/docs/publishing.md
+    about: How publishing on ADMG Exchange works.
