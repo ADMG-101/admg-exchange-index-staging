@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "checkedAt": "2026-10-21T17:14:49Z",
+  "checkedAt": "2026-10-21T17:35:06Z",
   "repositories": [
     {
       "repoNodeId": "R_kgDOVQN3aA",
@@ -73,7 +73,7 @@
       "tag": "v1.4.0",
       "state": "candidate",
       "reasons": [
-        "Ready for inspection."
+        "Sent for inspection; a moderator reviews the result."
       ]
     }
   ]
