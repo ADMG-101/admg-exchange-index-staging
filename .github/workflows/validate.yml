@@ -13,8 +13,8 @@ on:
 permissions: {}
 
 env:
-  TOOLS_URL: https://github.com/ADMG-101/admg-exchange-index-staging/releases/download/tools-v0.5.0/admg-exchange-tools-0.5.0.zip
-  TOOLS_SHA256: d75e4c0722b8cf97adcbe444367a54117a193e32b4848a6a3f1858e2b16dc40a
+  TOOLS_URL: https://github.com/ADMG-101/admg-exchange-index-staging/releases/download/tools-v0.6.0/admg-exchange-tools-0.6.0.zip
+  TOOLS_SHA256: b26129fa7355b1b8f20de5d2f6742d783add2f00f1cd32f78470d5a5a109a584
 
 jobs:
   validate:
