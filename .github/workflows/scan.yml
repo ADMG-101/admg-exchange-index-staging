@@ -1,6 +1,7 @@
 # Inspects one release candidate and attests the evidence. Started only by discover.yml (workflow_dispatch), never by
 # pull requests. The inspection itself runs in a container with no network and no credentials; the private reference
-# set is decrypted by a trusted step and mounted read-only; nothing secret is uploaded.
+# set is decrypted by a trusted step and mounted read-only; nothing secret is uploaded. Each artifact and the source tree
+# are also scanned for known malware with ClamAV (official image, signatures topped up first, scan without network).
 name: scan
 
 on:
@@ -14,9 +15,12 @@ on:
 permissions: {}
 
 env:
-  TOOLS_URL: https://github.com/ADMG-101/admg-exchange-index-staging/releases/download/tools-v0.7.3/admg-exchange-tools-0.7.3.zip
-  TOOLS_SHA256: 4941870d6033eea1110989fab26583478bb476f3e560525e97f7e63d2a851216
+  TOOLS_URL: https://github.com/ADMG-101/admg-exchange-index-staging/releases/download/tools-v0.8.0/admg-exchange-tools-0.8.0.zip
+  TOOLS_SHA256: b9f679bd158166a836d2b58507919f4178932dcf3d9279fd97440e3647b8058e
   DOTNET_IMAGE: mcr.microsoft.com/dotnet/runtime@sha256:939555726cae4c916d212323ac3c0792996dcac2614f00e82cc40fcf059e1af3
+  # ClamAV's official image for the 1.5 series, rebuilt upstream with current signatures; deliberately not pinned by
+  # digest, so the signatures stay fresh. The report records the exact scanner and database version.
+  CLAMAV_IMAGE: docker.io/clamav/clamav:1.5
 
 jobs:
   inspect:
@@ -79,6 +83,35 @@ jobs:
             fi
           done
 
+      - name: Scan for known malware (ClamAV; the scan itself has no network)
+        run: |
+          mkdir -p malware
+          docker pull --quiet "$CLAMAV_IMAGE"
+          # Top up the image's signatures (incremental). If the update service refuses, the image's own database is used;
+          # the report names its version and date either way.
+          if docker run --name clamav-update --entrypoint freshclam "$CLAMAV_IMAGE" --stdout > freshclam.log 2>&1; then
+            docker commit clamav-update clamav-fresh > /dev/null
+          else
+            echo "::warning::freshclam could not update the signatures; scanning with the image's own database."
+            tail -n 5 freshclam.log; docker tag "$CLAMAV_IMAGE" clamav-fresh
+          fi
+          docker rm -f clamav-update > /dev/null 2>&1 || true
+          clam() {
+            docker run --rm --network none --read-only --cap-drop ALL --security-opt no-new-privileges \
+              --pids-limit 256 --memory 4g --tmpfs /tmp:rw,size=1g \
+              -v "$PWD/work:/scan/artifacts:ro" -v "$PWD/source:/scan/source:ro" --entrypoint clamscan clamav-fresh "$@"
+          }
+          scanner=$(clam --version)
+          jq -r '.artifacts[].sha256' candidate.json | while read -r sha; do
+            set +e
+            clam --recursive --infected --no-summary --stdout --alert-exceeds-max=yes --tempdir=/tmp \
+              --exclude-dir='^/scan/source/\.git$' "/scan/artifacts/$sha" /scan/source > "malware/$sha.out" 2> "malware/$sha.err"
+            code=$?
+            set -e
+            { echo "scanner: $scanner"; echo "exit: $code"; cat "malware/$sha.out"; } > "malware/$sha.txt"
+            cat "malware/$sha.txt"; head -n 20 "malware/$sha.err"
+          done
+
       - name: Decrypt the reference set (trusted step; key never leaves this step)
         env:
           REFERENCES_KEY: ${{ secrets.REFERENCES_KEY }}
@@ -97,12 +130,13 @@ jobs:
               --pids-limit 256 --memory 3g --tmpfs /tmp:rw,size=64m \
               -e DOTNET_CLI_TELEMETRY_OPTOUT=1 -e HOME=/tmp \
               -v "$PWD/tools:/tools:ro" -v "$PWD/work:/work:ro" -v "$PWD/source:/source:ro" \
-              -v "$PWD/refs:/refs:ro" -v "$PWD/attest:/attest:ro" -v "$PWD/out:/out" \
+              -v "$PWD/refs:/refs:ro" -v "$PWD/attest:/attest:ro" -v "$PWD/malware:/malware:ro" -v "$PWD/out:/out" \
               "$DOTNET_IMAGE" dotnet /tools/admg-exchange.dll inspect \
                 --artifact "/work/$sha" --asset "$(jq -r .asset <<<"$artifact")" --kind "$(jq -r .kind <<<"$artifact")" \
                 --expected-sha256 "$sha" --descriptor /source/.admg/exchange.json \
                 --version "$(jq -r .release.version candidate.json)" --source-commit "$COMMIT" --repository "$REPOSITORY" \
                 --references /refs/references.json --source-tree /source "${attestation[@]}" \
+                --malware-scan "/malware/$sha.txt" --require-malware-scan \
                 --out "/out/$sha.evidence.json"
           done
 
@@ -121,6 +155,7 @@ jobs:
             out/*.evidence.json
             candidate.json
             attest/*.json
+            malware/*.txt
           retention-days: 30
           if-no-files-found: error
 

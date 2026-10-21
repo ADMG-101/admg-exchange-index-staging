@@ -1,0 +1,131 @@
+# Rescans every release players can still install (current and superseded; revoked ones are already blocked) for known
+# malware with ClamAV's latest signatures, weekly. A release that was clean when it was approved can match a signature
+# added later. A detection fails this run, so the repository owner is notified; it never revokes anything by itself.
+# Read-only: it verifies the published signed index, downloads each artifact by its signed digest and scans it without
+# network access.
+name: rescan
+
+on:
+  schedule:
+    - cron: "41 5 * * 1" # weekly, Monday
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: rescan
+  cancel-in-progress: false
+
+env:
+  TOOLS_URL: https://github.com/ADMG-101/admg-exchange-index-staging/releases/download/tools-v0.8.0/admg-exchange-tools-0.8.0.zip
+  TOOLS_SHA256: b9f679bd158166a836d2b58507919f4178932dcf3d9279fd97440e3647b8058e
+  CLAMAV_IMAGE: docker.io/clamav/clamav:1.5
+
+jobs:
+  rescan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
+    steps:
+      - name: Check out main (trust configuration)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: index
+          persist-credentials: false
+
+      - name: Check out the published site (gh-pages)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: gh-pages
+          path: site
+          persist-credentials: false
+
+      - name: Install the .NET runtime
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Fetch Exchange.Tools (digest-pinned)
+        run: |
+          curl -fsSL "$TOOLS_URL" -o tools.zip
+          echo "$TOOLS_SHA256  tools.zip" | sha256sum -c -
+          unzip -q tools.zip && mv admg-exchange-tools tools
+
+      - name: Verify the published index and list installable releases
+        run: |
+          dotnet tools/admg-exchange.dll verify-index --dir site/index/v1 --root-public index/config/root.pub
+          shopt -s nullglob
+          files=(site/index/v1/projects/*.json)
+          : > artifacts.tsv
+          for f in "${files[@]}"; do
+            jq -r '.releases[] | select(.status != "revoked") | .release.release as $r
+              | .release.artifacts[] | [$r, .sha256, .url] | @tsv' "$f" >> artifacts.tsv
+          done
+          echo "$(wc -l < artifacts.tsv) artifact(s) to rescan"
+
+      - name: Download each artifact by its signed digest
+        run: |
+          mkdir -p work
+          while IFS=$'\t' read -r release sha url; do
+            [ -n "$sha" ] || continue
+            grep -Eq '^[0-9a-f]{64}$' <<<"$sha"
+            dotnet tools/admg-exchange.dll fetch --url "$url" --sha256 "$sha" --out "work/$sha"
+          done < artifacts.tsv
+
+      - name: Scan for known malware (ClamAV; the scan itself has no network)
+        run: |
+          mkdir -p report
+          docker pull --quiet "$CLAMAV_IMAGE"
+          if docker run --name clamav-update --entrypoint freshclam "$CLAMAV_IMAGE" --stdout > freshclam.log 2>&1; then
+            docker commit clamav-update clamav-fresh > /dev/null
+          else
+            echo "::warning::freshclam could not update the signatures; scanning with the image's own database."
+            tail -n 5 freshclam.log; docker tag "$CLAMAV_IMAGE" clamav-fresh
+          fi
+          docker rm -f clamav-update > /dev/null 2>&1 || true
+          clam() {
+            docker run --rm --network none --read-only --cap-drop ALL --security-opt no-new-privileges \
+              --pids-limit 256 --memory 4g --tmpfs /tmp:rw,size=1g \
+              -v "$PWD/work:/scan/artifacts:ro" --entrypoint clamscan clamav-fresh "$@"
+          }
+          scanner=$(clam --version)
+          set +e
+          clam --recursive --infected --no-summary --stdout --alert-exceeds-max=yes --tempdir=/tmp /scan/artifacts > report/clamav.out 2> report/clamav.err
+          code=$?
+          set -e
+          { echo "scanner: $scanner"; echo "exit: $code"; cat report/clamav.out; } > report/report.txt
+          cp artifacts.tsv report/
+          {
+            echo "## Weekly malware rescan"
+            echo "Scanner: \`$scanner\` · $(wc -l < artifacts.tsv) artifact(s)"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$code" -gt 1 ]; then
+            echo "The scan itself failed (exit $code)." >> "$GITHUB_STEP_SUMMARY"; head -n 20 report/clamav.err
+            echo "::error::ClamAV failed (exit $code); the rescan is incomplete."; exit 1
+          fi
+          detections=$(grep ' FOUND$' report/clamav.out | grep -v 'Heuristics\.Limits\.Exceeded' || true)
+          limits=$(grep 'Heuristics\.Limits\.Exceeded.* FOUND$' report/clamav.out || true)
+          [ -n "$limits" ] && { echo "Not fully scanned (scanner limits):"; echo '```'; echo "$limits"; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+          if [ -n "$detections" ]; then
+            {
+              echo "**Known malware detected.** Review these releases and decide whether to revoke them:"
+              echo '| Release | Detection |'; echo '|---|---|'
+              while IFS= read -r line; do
+                sha=$(sed -E 's#^/scan/artifacts/([0-9a-f]{64}).*#\1#' <<<"$line")
+                release=$(awk -F'\t' -v s="$sha" '$2 == s { print $1 }' artifacts.tsv)
+                echo "| ${release:-$sha} | ${line#*: } |"
+              done <<<"$detections"
+            } >> "$GITHUB_STEP_SUMMARY"
+            echo "::error::Known malware detected in a published release; see the run summary."; exit 1
+          fi
+          echo "No known malware found." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Keep the report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: rescan-report
+          path: report/
+          retention-days: 90
+          if-no-files-found: ignore
