@@ -1,0 +1,47 @@
+name: Appeal a decision
+description: Ask ADMG Exchange moderators to review a rejection, revocation, suspension or delisting.
+title: "Appeal: <project id>"
+labels: ["appeal"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Appeals are public. Do not include private information; a moderator will contact you if more is needed.
+  - type: input
+    id: project
+    attributes:
+      label: Project id
+      description: As in .admg/exchange.json, for example your-name.your-mod
+    validations:
+      required: true
+  - type: input
+    id: release
+    attributes:
+      label: Release
+      description: The version or tag the decision applies to (leave empty for a decision about the whole project)
+  - type: dropdown
+    id: decision
+    attributes:
+      label: Decision
+      options: [Rejected release, Revoked release, Suspended project, Delisted project, Other]
+    validations:
+      required: true
+  - type: textarea
+    id: reason
+    attributes:
+      label: Public reason shown
+      description: Copy the reason shown in the launcher or the index.
+  - type: textarea
+    id: appeal
+    attributes:
+      label: Why it should change
+      description: What you believe is wrong, and anything you have changed since.
+    validations:
+      required: true
+  - type: checkboxes
+    id: owner
+    attributes:
+      label: Confirmation
+      options:
+        - label: I maintain this project's repository.
+          required: true
