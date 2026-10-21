@@ -20,8 +20,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  TOOLS_URL: https://github.com/ADMG-101/admg-exchange-index-staging/releases/download/tools-v0.6.0/admg-exchange-tools-0.6.0.zip
-  TOOLS_SHA256: b26129fa7355b1b8f20de5d2f6742d783add2f00f1cd32f78470d5a5a109a584
+  TOOLS_URL: https://github.com/ADMG-101/admg-exchange-index-staging/releases/download/tools-v0.7.0/admg-exchange-tools-0.7.0.zip
+  TOOLS_SHA256: d58478cf58b1a6c23728456d47dcae495c64d3e408fe6ebe147378f9d5df52de
   LEDGER_REPOSITORY: ADMG-101/admg-exchange-ledger-staging
 
 jobs:
