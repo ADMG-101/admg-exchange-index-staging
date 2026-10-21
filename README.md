@@ -12,7 +12,7 @@ and its releases.
 repository), install the **ADMG Exchange Staging** GitHub App on the repository, and tag a release. The ADMG-101
 launcher's Creator Hub guides you through the same steps. Discovery registers the repository and picks up each tagged
 release; every release is published only after a human moderator approves its exact package. Projects need a public
-repository and an open-source licence.
+repository; no licence is required.
 
 Publisher guide: [publishing](docs/publishing.md), [the GitHub App](docs/github-app.md),
 [troubleshooting](docs/troubleshooting.md), [updating](docs/updating.md), [appeals](docs/appeals.md).
