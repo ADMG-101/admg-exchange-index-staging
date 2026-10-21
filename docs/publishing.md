@@ -9,9 +9,7 @@ You never upload files to Exchange and you never need a token.
 - **Mods** for games on ADMG-101, and **modpacks** that pin approved mods. ROM hacks and server software are not
   Exchange categories.
 - From a **public GitHub repository**, with publicly inspectable source.
-- Under an **open-source licence**: `project.license.name` in `.admg/exchange.json` is its SPDX identifier (for example
-  `MIT`, `Apache-2.0`, `GPL-3.0-or-later`, `MPL-2.0`, `CC-BY-4.0`), and the unmodified licence text is in the
-  repository's `LICENSE` file, so GitHub recognises it at the tagged commit.
+- **Licensing is your choice.** Exchange requires no licence. If you declare one in `project.license`, players see it.
 - Released by **your repository's own workflow** from the tagged commit, with GitHub build provenance. Packages with
   code must carry a build-provenance attestation from that workflow.
 - **Your own work**: no game ROMs, ROM patches, or extracted game graphics, music or text.

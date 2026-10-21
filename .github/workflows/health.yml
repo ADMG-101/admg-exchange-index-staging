@@ -15,8 +15,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  TOOLS_URL: https://github.com/ADMG-101/admg-exchange-index-staging/releases/download/tools-v0.7.2/admg-exchange-tools-0.7.2.zip
-  TOOLS_SHA256: 6c415b8844cd3556a1b925d241729d6c138d9c1c3abde634a02f4985b0bbe23b
+  TOOLS_URL: https://github.com/ADMG-101/admg-exchange-index-staging/releases/download/tools-v0.7.3/admg-exchange-tools-0.7.3.zip
+  TOOLS_SHA256: 4941870d6033eea1110989fab26583478bb476f3e560525e97f7e63d2a851216
 
 jobs:
   health:
