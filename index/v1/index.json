@@ -1,24 +1,22 @@
 {
   "schema": 1,
-  "serial": 7,
-  "generatedAt": "2026-10-21T09:25:56Z",
-  "expiresAt": "2026-11-04T09:25:56Z",
-  "ledgerHead": "93ebca2ba6cbb646d52c2040d8af10e28e19d8a2",
+  "serial": 8,
+  "generatedAt": "2026-10-21T14:53:49Z",
+  "expiresAt": "2026-11-04T14:53:49Z",
+  "ledgerHead": "829dbd2f42e0885e3aa464ca0f4939e24b6a2030",
   "policy": "policy-1",
   "featured": [],
   "projects": [
     {
       "id": "admg-101.exchange-test-mod",
       "type": "mod",
-      "title": "Exchange Test Mod",
-      "summary": "A small data-only mod used to test the ADMG Exchange staging pipeline end to end.",
+      "title": "exchange-test-mod",
+      "summary": "Describe your mod in one sentence.",
       "categories": [
         "other"
       ],
-      "tags": [
-        "staging",
-        "test"
-      ],
+      "tags": [],
+      "license": "MIT",
       "publisher": {
         "owner": "ADMG-101",
         "repo": "exchange-test-mod",
@@ -26,29 +24,29 @@
       },
       "status": "listed",
       "latest": {
-        "release": "admg-101.exchange-test-mod@1.2.0",
-        "version": "1.2.0",
-        "tag": "v1.2.0",
-        "sourceCommit": "0e83556e3af200b597e1619ae3908d2efba338b7",
-        "approvedAt": "2026-10-20T13:36:43Z",
-        "approval": "01M5CREMYSX31DKGH1HZJVC51C",
+        "release": "admg-101.exchange-test-mod@1.3.0",
+        "version": "1.3.0",
+        "tag": "v1.3.0",
+        "sourceCommit": "1aad282192d13076d56496548618bc65036012f2",
+        "approvedAt": "2026-10-21T14:51:14Z",
+        "approval": "01M5FF3T79ZD5AR49AA2WXX1CX",
         "artifacts": [
           {
-            "asset": "exchange-test-mod-1.2.0.zip",
+            "asset": "exchange-test-mod-1.3.0.zip",
             "kind": "mod-package",
-            "githubAssetId": 658439616,
-            "url": "https://github.com/ADMG-101/exchange-test-mod/releases/download/v1.2.0/exchange-test-mod-1.2.0.zip",
-            "size": 540,
-            "sha256": "b2fffa341639d6f9d77e3e3360515ccf2e26e6d2a92758e33653c9afdad97fe4",
+            "githubAssetId": 662704806,
+            "url": "https://github.com/ADMG-101/exchange-test-mod/releases/download/v1.3.0/exchange-test-mod-1.3.0.zip",
+            "size": 557,
+            "sha256": "030154eb0239b0d5433547bf4811c62c3cd857b9896c718ab4d52b3e85401b60",
             "contains": [
               "data"
             ],
             "disclosures": [],
             "installed": {
               "layout": "root-zip",
-              "hostSha256": "b2fffa341639d6f9d77e3e3360515ccf2e26e6d2a92758e33653c9afdad97fe4",
+              "hostSha256": "030154eb0239b0d5433547bf4811c62c3cd857b9896c718ab4d52b3e85401b60",
               "unpackedSha256": [
-                "aa2d45573c6f42cdc7a376af5ce8790986fd16d865e6421b6a586d1e612c6f5e"
+                "fe69bc5cd929131e1b3dc37b7857f0c43d9eb74ef1aa50c14c001690eb5a4f0f"
               ]
             }
           }
@@ -67,7 +65,7 @@
         "mod": {
           "packages": [
             {
-              "asset": "exchange-test-mod-1.2.0.zip",
+              "asset": "exchange-test-mod-1.3.0.zip",
               "modId": "exchange-test-mod",
               "gameId": "emerald-expansion",
               "minimumRecompVersion": "0.1.0",
