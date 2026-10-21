@@ -14,8 +14,8 @@ on:
 permissions: {}
 
 env:
-  TOOLS_URL: https://github.com/ADMG-101/admg-exchange-index-staging/releases/download/tools-v0.7.0/admg-exchange-tools-0.7.0.zip
-  TOOLS_SHA256: d58478cf58b1a6c23728456d47dcae495c64d3e408fe6ebe147378f9d5df52de
+  TOOLS_URL: https://github.com/ADMG-101/admg-exchange-index-staging/releases/download/tools-v0.7.1/admg-exchange-tools-0.7.1.zip
+  TOOLS_SHA256: 403e612f5ed7d847351c86b78481724bd7a4918477cea93179a86b8d587fb653
   DOTNET_IMAGE: mcr.microsoft.com/dotnet/runtime@sha256:939555726cae4c916d212323ac3c0792996dcac2614f00e82cc40fcf059e1af3
 
 jobs:
