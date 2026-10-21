@@ -4,8 +4,7 @@
   tag. Each release is checked and reviewed on its own. Players see the update once it is approved; their settings are
   kept, and they can return to the previous approved release.
 - **Fixing a release:** releases are never edited after approval. Publish a new version.
-- **Changing the licence:** update `project.license.name` and `LICENSE` together. The next release is checked against
-  the new licence.
+- **Changing the licence:** update `project.license` if you declare one. It is shown to players, never checked.
 - **Renaming the repository:** fine. The project id and its history stay with the repository.
 - **Transferring the repository:** its releases are held until a moderator reviews the transfer.
 - **Modpacks:** to move members to newer approved releases, update the pins, run `python3 .admg/package.py sync`, then
