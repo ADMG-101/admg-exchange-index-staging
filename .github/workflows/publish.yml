@@ -20,8 +20,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  TOOLS_URL: https://github.com/ADMG-101/admg-exchange-index-staging/releases/download/tools-v0.7.1/admg-exchange-tools-0.7.1.zip
-  TOOLS_SHA256: 403e612f5ed7d847351c86b78481724bd7a4918477cea93179a86b8d587fb653
+  TOOLS_URL: https://github.com/ADMG-101/admg-exchange-index-staging/releases/download/tools-v0.7.2/admg-exchange-tools-0.7.2.zip
+  TOOLS_SHA256: 6c415b8844cd3556a1b925d241729d6c138d9c1c3abde634a02f4985b0bbe23b
   LEDGER_REPOSITORY: ADMG-101/admg-exchange-ledger-staging
 
 jobs:
@@ -91,6 +91,12 @@ jobs:
 
       - name: Verify the result as the launcher will
         run: dotnet tools/admg-exchange.dll verify-index --dir site/index/v1 --root-public index/config/root.pub
+
+      # Rejections and quarantines in force, with their public reasons only, so publishers can see why a release was held
+      # back (the Creator Hub reads it). Revocations are already in the signed index.
+      - name: Write the public moderation decisions
+        run: |
+          dotnet tools/admg-exchange.dll decisions --ledger ledger --bootstrap index/config/ledger-bootstrap.signers             --registrations index/registrations --out site/status/decisions.json
 
       - name: Publish to gh-pages
         working-directory: site
