@@ -9,7 +9,7 @@ You never upload files to Exchange and you never need a token.
 - **Mods** for games on ADMG-101, and **modpacks** that pin approved mods. ROM hacks and server software are not
   Exchange categories.
 - From a **public GitHub repository**, with publicly inspectable source.
-- **Licensing is your choice.** Exchange requires no licence. If you declare one in `project.license`, players see it.
+- **Licensing is your choice.** Exchange requires no license. If you declare one in `project.license`, players see it.
 - Released as a **GitHub release** of a tagged commit:
   - **Data mods and modpacks** (JSON, images, text): build and upload the zip however you like. Every file in it must
     match your repository at the tag.

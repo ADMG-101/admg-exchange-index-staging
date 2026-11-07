@@ -1,15 +1,15 @@
 {
   "schema": 1,
   "version": 1,
-  "issuedAt": "2026-10-20T00:09:50Z",
-  "expiresAt": "2027-10-20T00:09:50Z",
+  "issuedAt": "2026-11-07T22:58:44Z",
+  "expiresAt": "2027-11-07T22:58:44Z",
   "indexKeys": [
     {
-      "keyId": "97ed255f25d700c7",
+      "keyId": "6866f721d0777264",
       "algorithm": "ES256",
-      "publicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE14/avW0PhZ3Fsna//eAVB10RiWWr6HRutqQ8nRkXhPV7Z0PIP+0smZnzKgGiv5xdBaKYdKIusI4nKN+rOS70sw==",
-      "notBefore": "2026-10-20T00:09:50Z",
-      "notAfter": "2027-10-19T00:09:50Z"
+      "publicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE5OroNx+Gz54gsyTQSk61src3uFphB6v5CSMl0QMwhlpkCkLp3ttIs4x2PAfQBGJUOXGYm6hx7PI1AzWPSxPdmg==",
+      "notBefore": "2026-11-07T22:58:44Z",
+      "notAfter": "2027-11-06T22:58:44Z"
     }
   ]
 }

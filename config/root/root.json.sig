@@ -2,9 +2,9 @@
   "schema": 1,
   "signatures": [
     {
-      "keyId": "3b3c267a14be3eb0",
+      "keyId": "c0059258893da391",
       "algorithm": "ES256",
-      "signature": "nLxZqdt62oHAEA/HhQXCNlzu6YWV1frbhN+5Z91BXUWslzcze4XUg25+/vX+XAahGP0xT/1IKYOmH0yI3D5EMw=="
+      "signature": "BuXUCDHhk9rzjuiT8xiKP+qTgrO5u2WXfCT7In8MopntdvIUgSldMaeDE16+VZd1bkaCGfljVX7AwZCwaNIIdg=="
     }
   ]
 }
