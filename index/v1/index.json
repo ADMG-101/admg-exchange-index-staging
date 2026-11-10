@@ -1,8 +1,8 @@
 {
   "schema": 1,
-  "serial": 3,
-  "generatedAt": "2026-11-09T05:14:37Z",
-  "expiresAt": "2026-11-23T05:14:37Z",
+  "serial": 4,
+  "generatedAt": "2026-11-10T05:00:01Z",
+  "expiresAt": "2026-11-24T05:00:01Z",
   "ledgerHead": "b5c1bce61d829c21a184095b9589a31da226d917",
   "policy": "policy-1",
   "featured": [],
