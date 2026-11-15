@@ -1,84 +1,23 @@
 {
   "schema": 1,
-  "serial": 8,
-  "generatedAt": "2026-11-14T04:59:45Z",
-  "expiresAt": "2026-11-28T04:59:45Z",
-  "ledgerHead": "b5c1bce61d829c21a184095b9589a31da226d917",
+  "serial": 9,
+  "generatedAt": "2026-11-15T04:21:00Z",
+  "expiresAt": "2026-11-29T04:21:00Z",
+  "ledgerHead": "e3c741b6b15afb48d013e3b55588608c45134d06",
   "policy": "policy-1",
   "featured": [],
-  "projects": [
+  "projects": [],
+  "revocations": [
     {
-      "id": "admg-101.exchange-test-mod",
-      "type": "mod",
-      "title": "exchange-test-mod",
-      "summary": "Describe your mod in one sentence.",
-      "categories": [
-        "other"
-      ],
-      "tags": [],
-      "license": "MIT",
-      "publisher": {
-        "owner": "ADMG-101",
-        "repo": "exchange-test-mod",
-        "repoNodeId": "R_kgDOVmm19Q"
-      },
-      "status": "listed",
-      "latest": {
-        "release": "admg-101.exchange-test-mod@1.3.0",
-        "version": "1.3.0",
-        "tag": "v1.3.0",
-        "sourceCommit": "f99d2951511452c4f5e565c3f7a71f949ba37e20",
-        "approvedAt": "2026-11-08T00:06:34Z",
-        "approval": "01M6W7MWAFEDBC67SFQT5PYXZP",
-        "artifacts": [
-          {
-            "asset": "exchange-test-mod-1.3.0.zip",
-            "kind": "mod-package",
-            "githubAssetId": 722325016,
-            "url": "https://github.com/ADMG-101/exchange-test-mod/releases/download/v1.3.0/exchange-test-mod-1.3.0.zip",
-            "size": 557,
-            "sha256": "030154eb0239b0d5433547bf4811c62c3cd857b9896c718ab4d52b3e85401b60",
-            "contains": [
-              "data"
-            ],
-            "disclosures": [],
-            "installed": {
-              "layout": "root-zip",
-              "hostSha256": "030154eb0239b0d5433547bf4811c62c3cd857b9896c718ab4d52b3e85401b60",
-              "unpackedSha256": [
-                "fe69bc5cd929131e1b3dc37b7857f0c43d9eb74ef1aa50c14c001690eb5a4f0f"
-              ]
-            }
-          }
-        ],
-        "checks": {
-          "provenance": "pass",
-          "content": "pass",
-          "integrity": "pass",
-          "executable": "pass"
-        },
-        "verification": {
-          "sourcePublic": true,
-          "buildProvenance": "not-applicable",
-          "reproduced": "not-attempted"
-        },
-        "mod": {
-          "packages": [
-            {
-              "asset": "exchange-test-mod-1.3.0.zip",
-              "modId": "exchange-test-mod",
-              "gameId": "emerald-expansion",
-              "minimumRecompVersion": "0.1.0",
-              "dependencies": [],
-              "optionalDependencies": [],
-              "conflicts": [],
-              "requiresCapabilities": []
-            }
-          ]
-        }
-      },
-      "detail": "projects/admg-101.exchange-test-mod.json"
+      "sha256": "030154eb0239b0d5433547bf4811c62c3cd857b9896c718ab4d52b3e85401b60",
+      "project": "admg-101.exchange-test-mod",
+      "severity": "block",
+      "publicReason": "Test revocation on staging.",
+      "at": "2026-11-15T04:10:42Z",
+      "record": "01M7EPCYC2EWP3K8KRZS42625T",
+      "installedSha256": [
+        "fe69bc5cd929131e1b3dc37b7857f0c43d9eb74ef1aa50c14c001690eb5a4f0f"
+      ]
     }
-  ],
-  "revocations": []
+  ]
 }
