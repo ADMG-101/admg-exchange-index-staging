@@ -4,7 +4,7 @@
     {
       "keyId": "6866f721d0777264",
       "algorithm": "ES256",
-      "signature": "HNmc/1/wNPtGK1DwBrCDx5eJhJoWuw24xKGV7fbB1/sQudxD0l1cZ/pttHJY66d0Y0paLyJuDzz8djdNB+oN2A=="
+      "signature": "dyQ2BI4D+CSsRWXLjH4ofaj8uobL7R2b8mmnmmP128rbB1KXG7ti/T/UlSWyX3ReWJp+pfbpGhP0YMjggyOsmQ=="
     }
   ]
 }
